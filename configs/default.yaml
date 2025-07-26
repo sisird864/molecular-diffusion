@@ -1,0 +1,108 @@
+# Default configuration for molecular diffusion project
+
+# Data settings
+data:
+  dataset: zinc250k
+  data_path: data/raw/zinc250k.csv
+  batch_size: 32
+  num_workers: 4
+  max_molecules: null  # Set to limit dataset size for testing
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+# Model settings
+model:
+  # VAE settings
+  vae:
+    hidden_dim: 256
+    latent_dim: 128
+    num_layers: 4
+    pooling: set2set
+    dropout: 0.2
+    beta: 0.01  # KL weight for beta-VAE
+  
+  # Diffusion settings
+  diffusion:
+    hidden_dims: [256, 512, 1024]
+    num_timesteps: 1000
+    beta_schedule: cosine
+    num_res_blocks: 2
+    dropout: 0.1
+    
+  # Property predictor settings
+  property:
+    hidden_dim: 256
+    num_layers: 4
+    conv_type: gat
+    pooling: set2set
+    dropout: 0.2
+    properties: ['QED', 'LogP', 'SA']
+
+# Training settings
+training:
+  # VAE training
+  vae:
+    epochs: 100
+    lr: 0.001
+    weight_decay: 0.0001
+    scheduler: cosine
+    patience: 20
+    
+  # Diffusion training
+  diffusion:
+    epochs: 200
+    lr: 0.0001
+    weight_decay: 0.0
+    scheduler: cosine
+    ema_decay: 0.995
+    gradient_clip: 1.0
+    
+  # Property predictor training
+  property:
+    epochs: 50
+    lr: 0.001
+    weight_decay: 0.0001
+    scheduler: plateau
+    patience: 10
+
+# Generation settings
+generation:
+  num_samples: 1000
+  guidance_scale: 1.0
+  property_targets:
+    QED: 0.9
+    LogP: 2.5
+    SA: 3.0
+  temperature: 1.0
+
+# Optimization settings
+optimization:
+  properties_to_optimize:
+    QED: 1  # 1 for maximize, -1 for minimize
+    LogP: 0  # 0 for target value
+    SA: -1
+  num_optimization_steps: 100
+  optimization_lr: 0.01
+
+# Logging settings
+logging:
+  use_wandb: true
+  wandb_project: molecular-diffusion
+  log_interval: 100
+  save_interval: 10
+  checkpoint_dir: checkpoints
+
+# Hardware settings
+device: cuda
+seed: 42
+
+# Evaluation settings
+evaluation:
+  metrics:
+    - validity
+    - uniqueness
+    - novelty
+    - diversity
+    - properties
+  num_test_samples: 5000
